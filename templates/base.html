@@ -7,8 +7,21 @@
   <title>{% block title %}GabayLunas{% endblock %} | GabayLunas</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-  <header class="topbar"><a class="brand" href="/">GabayLunas</a></header>
+<body>  
+  <header class="topbar">
+    <a class="brand" href="/">GabayLunas</a>
+    <nav>
+      {% if user.is_authenticated %}
+        <span class="who">{{ user.email }}</span>
+        <form method="post" action="{% url 'logout' %}" class="inline">
+          {% csrf_token %}<button type="submit" class="link">Log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">Log in</a>
+        <a href="{% url 'register' %}">Register</a>
+      {% endif %}
+    </nav>
+  </header>
   <main class="container">
     {% for message in messages %}<div class="msg {{ message.tags }}">{{ message }}</div>{% endfor %}
     {% block content %}{% endblock %}
