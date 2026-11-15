@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
 
-from .forms import RegistrationForm
+from .forms import ProfileForm, RegistrationForm
 
 
 def register(request):
@@ -15,3 +16,19 @@ def register(request):
             return redirect("/login/")  # the named URL arrives in step 8
         messages.error(request, "Please fix the errors below.")
     return render(request, "accounts/register.html", {"form": form})
+
+@login_required
+def profile(request):
+    return render(request, "accounts/profile.html")
+
+
+@login_required
+def profile_edit(request):
+    form = ProfileForm(request.POST or None, instance=request.user)
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect("profile")
+        messages.error(request, "Please fix the errors below.")
+    return render(request, "accounts/profile_edit.html", {"form": form})

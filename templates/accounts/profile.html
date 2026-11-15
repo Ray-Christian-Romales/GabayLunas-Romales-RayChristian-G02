@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<h1>My profile</h1>
+<div class="card">
+  <dl>
+    <dt>Name</dt><dd>{{ user.first_name }} {{ user.last_name }}</dd>
+    <dt>Email</dt><dd>{{ user.email }}</dd>
+    <dt>Role</dt><dd>{{ user.get_role_display }}</dd>
+    <dt>Contact number</dt><dd>{{ user.contact_number|default:"Not set" }}</dd>
+    <dt>City</dt><dd>{{ user.city|default:"Not set" }}</dd>
+    <dt>Blood type</dt><dd>{{ user.blood_type|default:"Not set" }}</dd>
+    <dt>Allergies</dt><dd>{{ user.medical_allergies|default:"Not set" }}</dd>
+  </dl>
+  <a class="btn" href="{% url 'profile_edit' %}">Edit profile</a>
+</div>
+{% endblock %}
