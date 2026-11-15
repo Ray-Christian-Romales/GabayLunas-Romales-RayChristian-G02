@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Virtual environments
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Django / editor
+db.sqlite3
+staticfiles/
+media/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
