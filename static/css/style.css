@@ -1,0 +1,147 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font:
+    16px/1.5 system-ui,
+    Arial,
+    sans-serif;
+  background: #f7f4ef;
+  color: #222;
+}
+a {
+  color: #8b1e2d;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #8b1e2d;
+  color: #fff;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.topbar a,
+.topbar .link {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 14px;
+  font: inherit;
+}
+.brand {
+  font-weight: bold;
+  font-size: 20px;
+  margin-left: 0 !important;
+}
+.topbar nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.who {
+  opacity: 0.85;
+  font-size: 14px;
+  margin-left: 14px;
+}
+.soon {
+  margin-left: 14px;
+  opacity: 0.55;
+  font-size: 14px;
+}
+form.inline {
+  display: inline;
+  margin: 0;
+}
+button.link {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.container {
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e3d9bd;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin: 14px 0;
+}
+.card p {
+  margin: 12px 0;
+}
+.card label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.card input,
+.card select,
+.card textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c9b87a;
+  border-radius: 6px;
+  font: inherit;
+}
+button[type="submit"]:not(.link),
+.btn {
+  background: #8b1e2d;
+  color: #fff;
+  border: 0;
+  padding: 9px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+  display: inline-block;
+}
+.helptext {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  font-weight: normal;
+}
+.errorlist {
+  color: #b00020;
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+  font-size: 14px;
+}
+.msg {
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+.msg.success {
+  background: #ddf0dd;
+}
+.msg.error {
+  background: #f8d8d8;
+}
+.msg.info {
+  background: #e6eef8;
+}
+dl {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 6px 12px;
+}
+dt {
+  font-weight: 600;
+}
+dd {
+  margin: 0;
+}
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
