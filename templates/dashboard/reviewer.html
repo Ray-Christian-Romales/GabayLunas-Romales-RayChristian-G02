@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Reviewer Dashboard{% endblock %}
+{% block content %}
+<h1>Reviewer dashboard</h1>
+<p>Welcome, {{ user.first_name }}. Medical content review tools arrive in the next phases:</p>
+<div class="grid">
+  <div class="card"><b>Verification queue</b><br>Pending entries</div>
+  <div class="card"><b>Content</b><br>Illnesses, medicines, facilities</div>
+</div>
+{% endblock %}
