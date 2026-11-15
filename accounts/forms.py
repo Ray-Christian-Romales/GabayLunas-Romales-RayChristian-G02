@@ -28,3 +28,20 @@ class EmailLoginForm(AuthenticationForm):
 
     def clean_username(self):
         return self.cleaned_data["username"].strip().lower()
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "email", "contact_number", "city", "blood_type", "medical_allergies")
+        widgets = {"medical_allergies": forms.Textarea(attrs={"rows": 3})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["first_name"].required = True
+        self.fields["last_name"].required = True
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Another account already uses this email.")
+        return email
