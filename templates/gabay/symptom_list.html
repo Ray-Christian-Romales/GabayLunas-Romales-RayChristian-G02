@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Symptoms{% endblock %}
+{% block content %}
+<h1>Symptoms</h1>
+<a class="btn" href="{% url 'symptom_create' %}">Add symptom</a>
+{% for s in symptoms %}
+<div class="card"><b>{{ s.name }}</b> ({{ s.body_part }}){% if s.is_red_flag %} <b>RED FLAG</b>{% endif %}
+  <a href="{% url 'symptom_edit' s.pk %}">Edit</a>
+  <form method="post" action="{% url 'symptom_delete' s.pk %}" class="inline" onsubmit="return confirm('Delete this symptom?')">{% csrf_token %}<button type="submit" class="link">Delete</button></form>
+</div>
+{% empty %}<p>No symptoms yet.</p>{% endfor %}
+{% endblock %}

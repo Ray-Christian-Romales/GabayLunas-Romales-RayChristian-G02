@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if formset %}
+    <h3>Symptoms and weights</h3>
+    <p class="helptext">Weight: 1 rare, 2 occasional, 3 common. Tick Delete to remove a row.</p>
+    {{ formset.management_form }}{{ formset.non_form_errors }}
+    {% for f in formset %}<div class="row">{{ f.as_p }}</div>{% endfor %}
+  {% endif %}
+  <button type="submit">Save</button> <a href="{% url back %}">Cancel</a>
+</form>
+{% endblock %}
