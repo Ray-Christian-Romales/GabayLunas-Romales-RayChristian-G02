@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Illnesses{% endblock %}
+{% block content %}
+<h1>Illnesses</h1>
+<a class="btn" href="{% url 'illness_create' %}">Add illness</a>
+{% for i in illnesses %}
+<div class="card"><b>{{ i.name }}</b> | {{ i.get_severity_level_display }} | <b>{{ i.status }}</b>
+  <span class="helptext">Submitted by {{ i.submitted_by.email }}</span>
+  <a href="{% url 'illness_edit' i.pk %}">Edit</a>
+  {% if i.status == 'PENDING' %}
+  <form method="post" action="{% url 'illness_approve' i.pk %}" class="inline">{% csrf_token %}<button type="submit" class="link">Approve</button></form>
+  {% endif %}
+  <form method="post" action="{% url 'illness_delete' i.pk %}" class="inline" onsubmit="return confirm('Delete this illness?')">{% csrf_token %}<button type="submit" class="link">Delete</button></form>
+</div>
+{% empty %}<p>No illnesses yet.</p>{% endfor %}
+{% endblock %}

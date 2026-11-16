@@ -16,7 +16,7 @@
         {% if user.role == 'CITIZEN' %}
           <span class="soon">Gabay</span><span class="soon">Lunas</span><span class="soon">Facilities</span>
         {% else %}
-          <span class="soon">Queue</span><span class="soon">Content</span>
+          <a href="{% url 'symptom_list' %}">Symptoms</a><a href="{% url 'illness_list' %}">Illnesses</a>
         {% endif %}
         <a href="{% url 'profile' %}">Profile</a>
         <span class="who">{{ user.email }}</span>
