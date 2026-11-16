@@ -11,4 +11,8 @@ urlpatterns = [
     path("reviewer/content/illnesses/<int:pk>/edit/", views.illness_edit, name="illness_edit"),
     path("reviewer/content/illnesses/<int:pk>/delete/", views.illness_delete, name="illness_delete"),
     path("reviewer/content/illnesses/<int:pk>/approve/", views.illness_approve, name="illness_approve"),
+    path("gabay/", views.gabay_check, name="gabay_check"),
+    path("history/", views.history_list, name="history"),
+    path("history/<int:pk>/delete/", views.history_delete, name="history_delete"),
+    path("history/clear/", views.history_clear, name="history_clear"),
 ]

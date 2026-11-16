@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import role_required
-from .forms import IllnessForm, IllnessSymptomFormSet, SymptomForm
+from .forms import IllnessForm, IllnessSymptomFormSet, SymptomCheckForm, SymptomForm
 from .models import Illness, SearchLog, Symptom
 
 
@@ -109,3 +109,54 @@ def illness_approve(request, pk):
             illness.save()
         messages.success(request, "Illness approved.")
     return redirect("illness_list")
+
+# ---------- Citizen: Gabay ----------
+@role_required("CITIZEN")
+def gabay_check(request):
+    form = SymptomCheckForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        symptoms = list(form.cleaned_data["symptoms"])
+        ids = [s.pk for s in symptoms]
+        red_flags = [s for s in symptoms if s.is_red_flag]
+        found = (Illness.public
+                 .filter(illness_links__symptom_id__in=ids)
+                 .distinct()
+                 .prefetch_related("illness_links"))
+        results = []
+        for i in found:
+            links = list(i.illness_links.all())
+            i.score = sum(l.match_weight for l in links if l.symptom_id in ids)
+            i.total = sum(l.match_weight for l in links)
+            i.match_pct = round(i.score * 100 / i.total)
+            results.append(i)
+        results.sort(key=lambda i: (-i.score, -i.match_pct, i.name))
+        results = results[:5]
+        SearchLog.objects.create(
+            user=request.user, search_type="SYMPTOM",
+            query_text=", ".join(s.name for s in symptoms)[:255],
+            red_flag_triggered=bool(red_flags))
+        advisory = bool(results) and not red_flags and results[0].severity_level == "MODERATE"
+        return render(request, "gabay/results.html",
+                      {"results": results, "red_flags": red_flags, "advisory": advisory})
+    return render(request, "gabay/check.html", {"form": form})
+
+
+@role_required("CITIZEN")
+def history_list(request):
+    return render(request, "gabay/history.html", {"logs": request.user.search_logs.all()})
+
+
+@role_required("CITIZEN")
+@require_POST
+def history_delete(request, pk):
+    get_object_or_404(SearchLog, pk=pk, user=request.user).delete()
+    messages.success(request, "Search deleted.")
+    return redirect("history")
+
+
+@role_required("CITIZEN")
+@require_POST
+def history_clear(request):
+    request.user.search_logs.all().delete()
+    messages.success(request, "History cleared.")
+    return redirect("history")

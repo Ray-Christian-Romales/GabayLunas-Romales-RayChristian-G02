@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Gabay results{% endblock %}
+{% block content %}
+<h1>Results</h1>
+{% if red_flags %}
+<div class="msg error"><b>URGENT:</b> {% for s in red_flags %}{{ s.red_flag_message }}. {% endfor %}Seek immediate hospital care.</div>
+{% elif advisory %}
+<div class="msg warning">Consider seeing a doctor, especially if symptoms last more than a few days.</div>
+{% endif %}
+{% for i in results %}
+<div class="card"><h3>{{ forloop.counter }}. {{ i.name }}</h3>
+  <span class="helptext">Match {{ i.match_pct }}% | {{ i.get_severity_level_display }}</span>
+  <p>{{ i.description }}</p></div>
+{% empty %}<p>No matching illness found. Please consult a doctor.</p>{% endfor %}
+<p class="helptext">GabayLunas provides first-aid informational guidance only and is not a substitute for professional clinical medical advice.</p>
+<a class="btn" href="{% url 'gabay_check' %}">New check</a> <a href="{% url 'history' %}">History</a>
+{% endblock %}

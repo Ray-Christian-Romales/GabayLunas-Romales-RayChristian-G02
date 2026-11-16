@@ -4,7 +4,8 @@
 <h1>Hello, {{ user.first_name }}</h1>
 <p>Your Citizen dashboard. These tools arrive in the next phases:</p>
 <div class="grid">
-  <div class="card"><b>Gabay</b><br>Check symptoms</div>
+  <a class="card" href="{% url 'gabay_check' %}"><b>Gabay</b><br>Check symptoms</a>
+  <a class="card" href="{% url 'history' %}"><b>History</b><br>Your past searches</a>
   <div class="card"><b>Lunas</b><br>OTC medicines</div>
   <div class="card"><b>Facilities</b><br>Cebu hospitals</div>
   <div class="card"><b>Emergency contacts</b><br>Your ICE list</div>

@@ -14,7 +14,7 @@
       {% if user.is_authenticated %}
         <a href="{% url 'dashboard' %}">Dashboard</a>
         {% if user.role == 'CITIZEN' %}
-          <span class="soon">Gabay</span><span class="soon">Lunas</span><span class="soon">Facilities</span>
+          <a href="{% url 'gabay_check' %}">Gabay</a><a href="{% url 'history' %}">History</a><span class="soon">Lunas</span><span class="soon">Facilities</span>
         {% else %}
           <a href="{% url 'symptom_list' %}">Symptoms</a><a href="{% url 'illness_list' %}">Illnesses</a>
         {% endif %}
