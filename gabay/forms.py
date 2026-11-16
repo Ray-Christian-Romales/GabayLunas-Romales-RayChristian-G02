@@ -24,3 +24,11 @@ class IllnessForm(forms.ModelForm):
 
 IllnessSymptomFormSet = inlineformset_factory(
     Illness, IllnessSymptom, fields=["symptom", "match_weight"], extra=3, can_delete=True)
+
+
+class SymptomCheckForm(forms.Form):
+    symptoms = forms.ModelMultipleChoiceField(
+        queryset=Symptom.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        error_messages={"required": "Select at least one symptom."},
+    )
