@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -144,7 +146,9 @@ def gabay_check(request):
             red_flag_triggered=bool(red_flags))
         qs = "&".join(f"s={s.pk}" for s in symptoms)
         return redirect(f"{reverse('gabay_results')}?{qs}")
-    return render(request, "gabay/check.html", {"form": form})
+    symptoms = Symptom.objects.order_by("body_part", "name")
+    groups = {bp: list(g) for bp, g in groupby(symptoms, key=lambda s: s.body_part)}
+    return render(request, "gabay/check.html", {"form": form, "groups": groups})
 
 
 @role_required("CITIZEN")
