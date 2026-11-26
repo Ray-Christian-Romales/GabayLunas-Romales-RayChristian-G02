@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -116,29 +117,41 @@ def gabay_check(request):
     form = SymptomCheckForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         symptoms = list(form.cleaned_data["symptoms"])
-        ids = [s.pk for s in symptoms]
         red_flags = [s for s in symptoms if s.is_red_flag]
-        found = (Illness.public
-                 .filter(illness_links__symptom_id__in=ids)
-                 .distinct()
-                 .prefetch_related("illness_links"))
-        results = []
-        for i in found:
-            links = list(i.illness_links.all())
-            i.score = sum(l.match_weight for l in links if l.symptom_id in ids)
-            i.total = sum(l.match_weight for l in links)
-            i.match_pct = round(i.score * 100 / i.total)
-            results.append(i)
-        results.sort(key=lambda i: (-i.score, -i.match_pct, i.name))
-        results = results[:5]
         SearchLog.objects.create(
             user=request.user, search_type="SYMPTOM",
             query_text=", ".join(s.name for s in symptoms)[:255],
             red_flag_triggered=bool(red_flags))
-        advisory = bool(results) and not red_flags and results[0].severity_level == "MODERATE"
-        return render(request, "gabay/results.html",
-                      {"results": results, "red_flags": red_flags, "advisory": advisory})
+        qs = "&".join(f"s={s.pk}" for s in symptoms)
+        return redirect(f"{reverse('gabay_results')}?{qs}")
     return render(request, "gabay/check.html", {"form": form})
+
+
+@role_required("CITIZEN")
+def gabay_results(request):
+    ids = [int(i) for i in request.GET.getlist("s") if i.isdigit()]
+    symptoms = list(Symptom.objects.filter(pk__in=ids))
+    if not symptoms:
+        messages.error(request, "Select at least one symptom.")
+        return redirect("gabay_check")
+    symptom_ids = [s.pk for s in symptoms]
+    red_flags = [s for s in symptoms if s.is_red_flag]
+    found = (Illness.public
+             .filter(illness_links__symptom_id__in=symptom_ids)
+             .distinct()
+             .prefetch_related("illness_links"))
+    results = []
+    for i in found:
+        links = list(i.illness_links.all())
+        i.score = sum(l.match_weight for l in links if l.symptom_id in symptom_ids)
+        i.total = sum(l.match_weight for l in links)
+        i.match_pct = round(i.score * 100 / i.total)
+        results.append(i)
+    results.sort(key=lambda i: (-i.score, -i.match_pct, i.name))
+    results = results[:5]
+    advisory = bool(results) and not red_flags and results[0].severity_level == "MODERATE"
+    return render(request, "gabay/results.html",
+                  {"results": results, "red_flags": red_flags, "advisory": advisory})
 
 
 @role_required("CITIZEN")
