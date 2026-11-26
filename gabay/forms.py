@@ -9,6 +9,15 @@ class SymptomForm(forms.ModelForm):
         model = Symptom
         fields = ["name", "body_part", "is_red_flag", "red_flag_message"]
 
+    def clean_name(self):
+        name = " ".join(self.cleaned_data["name"].split())
+        if len(name) < 3:
+            raise forms.ValidationError("Name must be at least 3 characters.")
+        qs = Symptom.objects.filter(name__iexact=name).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("A symptom with this name already exists.")
+        return name
+
     def clean(self):
         data = super().clean()
         if data.get("is_red_flag") and not (data.get("red_flag_message") or "").strip():
@@ -20,6 +29,21 @@ class IllnessForm(forms.ModelForm):
     class Meta:
         model = Illness
         fields = ["name", "description", "severity_level"]
+
+    def clean_name(self):
+        name = " ".join(self.cleaned_data["name"].split())
+        if len(name) < 3:
+            raise forms.ValidationError("Name must be at least 3 characters.")
+        qs = Illness.objects.filter(name__iexact=name).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("An illness with this name already exists.")
+        return name
+
+    def clean_description(self):
+        desc = " ".join(self.cleaned_data["description"].split())
+        if len(desc) < 20:
+            raise forms.ValidationError("Description must be at least 20 characters.")
+        return desc
 
 
 IllnessSymptomFormSet = inlineformset_factory(
