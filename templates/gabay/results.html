@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Results</h1>
 {% if red_flags %}
-<div class="msg error"><b>URGENT:</b> {% for s in red_flags %}{{ s.red_flag_message }}. {% endfor %}Seek immediate hospital care.</div>
+<div class="msg error"><b>URGENT:</b> {% for s in red_flags %}{{ s.red_flag_message }}. {% endfor %}Call 911 or go to the nearest emergency room immediately.</div>
 {% elif advisory %}
 <div class="msg warning">Consider seeing a doctor, especially if symptoms last more than a few days.</div>
 {% endif %}

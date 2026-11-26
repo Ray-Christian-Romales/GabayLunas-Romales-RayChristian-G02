@@ -5,7 +5,10 @@
 <form method="post" class="card" novalidate>
   {% csrf_token %}
   {{ form.symptoms.errors }}
-  {{ form.symptoms }}
+  {% for part, items in groups.items %}
+    <h3>{{ part }}</h3>
+    {% for s in items %}<label><input type="checkbox" name="symptoms" value="{{ s.pk }}"> {{ s.name }}</label><br>{% endfor %}
+  {% endfor %}
   <p><button type="submit">Check symptoms</button></p>
 </form>
 <p class="helptext">GabayLunas provides first-aid informational guidance only and is not a substitute for professional clinical medical advice.</p>
