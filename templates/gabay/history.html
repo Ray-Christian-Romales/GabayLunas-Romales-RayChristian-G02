@@ -5,7 +5,7 @@
 {% for l in logs %}
 <div class="card">{{ l.query_text }}{% if l.red_flag_triggered %} <b>RED FLAG</b>{% endif %}
   <span class="helptext">{{ l.created_at|date:"M d, Y H:i" }}</span>
-  <form method="post" action="{% url 'history_delete' l.pk %}" class="inline">{% csrf_token %}<button type="submit" class="link">Delete</button></form>
+  <form method="post" action="{% url 'history_delete' l.pk %}" class="inline" onsubmit="return confirm('Delete this search?')">{% csrf_token %}<button type="submit" class="link">Delete</button></form>
 </div>
 {% empty %}<p>No searches yet.</p>{% endfor %}
 {% if logs %}<form method="post" action="{% url 'history_clear' %}" onsubmit="return confirm('Clear all history?')">{% csrf_token %}<button type="submit">Clear all</button></form>{% endif %}
