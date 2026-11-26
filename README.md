@@ -28,3 +28,11 @@
 ## Roles
 - Citizen User: self-registers
 - Medical Reviewer / Admin: created with `createsuperuser` or the shell
+
+
+## Running Tests
+Run the automated test suite (13 tests covering access control, validation, redirect-after-POST, custom 404, and approval rules):
+```bash
+python manage.py test
+```
+> **Supabase note:** Django's test runner creates a temporary test database (`test_postgres`), which requires a direct or session connection (port `5432`) in `.env` rather than the transaction pooler (port `6543`). If your Supabase role does not have `CREATEDB` permission, `settings.py` falls back to an in-memory SQLite database when running `test`.
