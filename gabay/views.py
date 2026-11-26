@@ -111,6 +111,26 @@ def illness_approve(request, pk):
         messages.success(request, "Illness approved.")
     return redirect("illness_list")
 
+
+@role_required("REVIEWER")
+@require_POST
+def illness_reject(request, pk):
+    illness = get_object_or_404(Illness, pk=pk, status=Illness.Status.PENDING)
+    notes = request.POST.get("review_notes", "").strip()
+    if illness.submitted_by_id == request.user.pk:
+        messages.error(request, "Another reviewer must review your entry.")
+    elif len(notes) < 5:
+        messages.error(request, "Rejection notes are required (at least 5 characters).")
+    else:
+        with transaction.atomic():
+            illness.status = Illness.Status.REJECTED
+            illness.reviewed_by = request.user
+            illness.reviewed_at = timezone.now()
+            illness.review_notes = notes
+            illness.save()
+        messages.success(request, "Illness rejected.")
+    return redirect("illness_list")
+
 # ---------- Citizen: Gabay ----------
 @role_required("CITIZEN")
 def gabay_check(request):
