@@ -2,6 +2,7 @@ from itertools import groupby
 
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -41,15 +42,19 @@ def symptom_edit(request, pk):
 @role_required("REVIEWER")
 @require_POST
 def symptom_delete(request, pk):
-    get_object_or_404(Symptom, pk=pk).delete()
-    messages.success(request, "Symptom deleted.")
+    symptom = get_object_or_404(Symptom, pk=pk)
+    try:
+        symptom.delete()
+        messages.success(request, "Symptom deleted.")
+    except ProtectedError:
+        messages.error(request, "This symptom is used by an illness. Remove it there first.")
     return redirect("symptom_list")
 
 
 # ---------- Reviewer: illnesses ----------
 @role_required("REVIEWER")
 def illness_list(request):
-    illnesses = Illness.objects.select_related("submitted_by")
+    illnesses = Illness.objects.select_related("submitted_by", "reviewed_by").prefetch_related("illness_links__symptom")
     return render(request, "gabay/illness_list.html", {"illnesses": illnesses})
 
 
@@ -180,7 +185,7 @@ def gabay_results(request):
 
 @role_required("CITIZEN")
 def history_list(request):
-    return render(request, "gabay/history.html", {"logs": request.user.search_logs.all()})
+    return render(request, "gabay/history.html", {"logs": request.user.search_logs.order_by("-created_at")})
 
 
 @role_required("CITIZEN")
