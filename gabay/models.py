@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -54,9 +55,12 @@ class Illness(models.Model):
 
 class IllnessSymptom(models.Model):
     illness = models.ForeignKey(Illness, on_delete=models.CASCADE, related_name="illness_links")
-    symptom = models.ForeignKey(Symptom, on_delete=models.CASCADE, related_name="symptom_links")
+    symptom = models.ForeignKey(Symptom, on_delete=models.PROTECT, related_name="symptom_links")
     match_weight = models.PositiveSmallIntegerField(
-        choices=[(1, "1 - rare"), (2, "2 - occasional"), (3, "3 - common")], default=2)
+        choices=[(1, "1 - rare"), (2, "2 - occasional"), (3, "3 - common")],
+        default=2,
+        validators=[MinValueValidator(1), MaxValueValidator(3)],
+    )
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["illness", "symptom"], name="uq_illness_symptom")]

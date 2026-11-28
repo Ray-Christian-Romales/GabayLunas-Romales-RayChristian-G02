@@ -9,8 +9,12 @@
   <a href="{% url 'illness_edit' i.pk %}">Edit</a>
   {% if i.status == 'PENDING' %}
   <form method="post" action="{% url 'illness_approve' i.pk %}" class="inline">{% csrf_token %}<button type="submit" class="link">Approve</button></form>
+  <form method="post" action="{% url 'illness_reject' i.pk %}" class="inline" onsubmit="return confirm('Reject this illness?')">{% csrf_token %}<input type="text" name="review_notes" placeholder="Reason for rejection" required><button type="submit" class="link">Reject</button></form>
   {% endif %}
   <form method="post" action="{% url 'illness_delete' i.pk %}" class="inline" onsubmit="return confirm('Delete this illness?')">{% csrf_token %}<button type="submit" class="link">Delete</button></form>
+  {% if i.status == "REJECTED" and i.review_notes %}
+  <p><b>Rejected:</b> {{ i.review_notes }}</p>
+  {% endif %}
 </div>
 {% empty %}<p>No illnesses yet.</p>{% endfor %}
 {% endblock %}

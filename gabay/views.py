@@ -1,6 +1,10 @@
+from itertools import groupby
+
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -38,15 +42,19 @@ def symptom_edit(request, pk):
 @role_required("REVIEWER")
 @require_POST
 def symptom_delete(request, pk):
-    get_object_or_404(Symptom, pk=pk).delete()
-    messages.success(request, "Symptom deleted.")
+    symptom = get_object_or_404(Symptom, pk=pk)
+    try:
+        symptom.delete()
+        messages.success(request, "Symptom deleted.")
+    except ProtectedError:
+        messages.error(request, "This symptom is used by an illness. Remove it there first.")
     return redirect("symptom_list")
 
 
 # ---------- Reviewer: illnesses ----------
 @role_required("REVIEWER")
 def illness_list(request):
-    illnesses = Illness.objects.select_related("submitted_by")
+    illnesses = Illness.objects.select_related("submitted_by", "reviewed_by").prefetch_related("illness_links__symptom")
     return render(request, "gabay/illness_list.html", {"illnesses": illnesses})
 
 
@@ -110,40 +118,74 @@ def illness_approve(request, pk):
         messages.success(request, "Illness approved.")
     return redirect("illness_list")
 
+
+@role_required("REVIEWER")
+@require_POST
+def illness_reject(request, pk):
+    illness = get_object_or_404(Illness, pk=pk, status=Illness.Status.PENDING)
+    notes = request.POST.get("review_notes", "").strip()
+    if illness.submitted_by_id == request.user.pk:
+        messages.error(request, "Another reviewer must review your entry.")
+    elif len(notes) < 5:
+        messages.error(request, "Rejection notes are required (at least 5 characters).")
+    else:
+        with transaction.atomic():
+            illness.status = Illness.Status.REJECTED
+            illness.reviewed_by = request.user
+            illness.reviewed_at = timezone.now()
+            illness.review_notes = notes
+            illness.save()
+        messages.success(request, "Illness rejected.")
+    return redirect("illness_list")
+
 # ---------- Citizen: Gabay ----------
 @role_required("CITIZEN")
 def gabay_check(request):
     form = SymptomCheckForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         symptoms = list(form.cleaned_data["symptoms"])
-        ids = [s.pk for s in symptoms]
         red_flags = [s for s in symptoms if s.is_red_flag]
-        found = (Illness.public
-                 .filter(illness_links__symptom_id__in=ids)
-                 .distinct()
-                 .prefetch_related("illness_links"))
-        results = []
-        for i in found:
-            links = list(i.illness_links.all())
-            i.score = sum(l.match_weight for l in links if l.symptom_id in ids)
-            i.total = sum(l.match_weight for l in links)
-            i.match_pct = round(i.score * 100 / i.total)
-            results.append(i)
-        results.sort(key=lambda i: (-i.score, -i.match_pct, i.name))
-        results = results[:5]
         SearchLog.objects.create(
             user=request.user, search_type="SYMPTOM",
             query_text=", ".join(s.name for s in symptoms)[:255],
             red_flag_triggered=bool(red_flags))
-        advisory = bool(results) and not red_flags and results[0].severity_level == "MODERATE"
-        return render(request, "gabay/results.html",
-                      {"results": results, "red_flags": red_flags, "advisory": advisory})
-    return render(request, "gabay/check.html", {"form": form})
+        qs = "&".join(f"s={s.pk}" for s in symptoms)
+        return redirect(f"{reverse('gabay_results')}?{qs}")
+    symptoms = Symptom.objects.order_by("body_part", "name")
+    groups = {bp: list(g) for bp, g in groupby(symptoms, key=lambda s: s.body_part)}
+    return render(request, "gabay/check.html", {"form": form, "groups": groups})
+
+
+@role_required("CITIZEN")
+def gabay_results(request):
+    ids = [int(i) for i in request.GET.getlist("s") if i.isdigit()]
+    symptoms = list(Symptom.objects.filter(pk__in=ids))
+    if not symptoms:
+        messages.error(request, "Select at least one symptom.")
+        return redirect("gabay_check")
+    symptom_ids = [s.pk for s in symptoms]
+    red_flags = [s for s in symptoms if s.is_red_flag]
+    found = (Illness.public
+             .filter(illness_links__symptom_id__in=symptom_ids)
+             .distinct()
+             .prefetch_related("illness_links"))
+    results = []
+    for i in found:
+        links = list(i.illness_links.all())
+        i.score = sum(l.match_weight for l in links if l.symptom_id in symptom_ids)
+        i.total = sum(l.match_weight for l in links)
+        i.match_pct = round(i.score * 100 / i.total)
+        results.append(i)
+    results.sort(key=lambda i: (-i.score, -i.match_pct, i.name))
+    results = results[:5]
+    advisory = bool(results) and not red_flags and results[0].severity_level == "MODERATE"
+    return render(request, "gabay/results.html",
+                  {"results": results, "red_flags": red_flags, "advisory": advisory})
 
 
 @role_required("CITIZEN")
 def history_list(request):
-    return render(request, "gabay/history.html", {"logs": request.user.search_logs.all()})
+    return render(request, "gabay/history.html", {"logs": request.user.search_logs.order_by("-created_at")})
 
 
 @role_required("CITIZEN")
